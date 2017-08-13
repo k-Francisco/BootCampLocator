@@ -37,11 +37,13 @@
                 android:tint="#5d5d5d"/>
 
             <EditText
+                android:id="@+id/etZipCode"
                 android:hint="Enter zip code"
                 android:layout_width="240dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:background="@android:color/transparent"/>
+                android:background="@android:color/transparent"
+                android:imeOptions="actionDone"/>
 
             <ImageButton
                 android:layout_width="wrap_content"
