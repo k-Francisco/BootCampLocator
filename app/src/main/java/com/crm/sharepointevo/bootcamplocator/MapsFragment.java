@@ -12,17 +12,22 @@ import android.location.LocationManager;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -47,20 +52,41 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private Looper looper;
     private Criteria criteria;
     private EditText zipcode;
+    private RecyclerView recyclerView;
+    private RecyclerView.LayoutManager layoutManager;
+    private RecyclerView.Adapter adapter;
+    InputMethodManager inputMethodManager;
+
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.maps_fragment, container,false);
         mapView = (MapView) view.findViewById(R.id.mapview);
+
+        inputMethodManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        recyclerView = (RecyclerView) view.findViewById(R.id.rvBottom);
+        layoutManager = new LinearLayoutManager(view.getContext());
+        recyclerView.setLayoutManager(layoutManager);
+
+        adapter = new LocationAdapter(getNearBootCampLocations());
+        recyclerView.setAdapter(adapter);
+
+        RelativeLayout bottomsheet = (RelativeLayout) view.findViewById(R.id.bottomsheet);
+        final BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+
         zipcode = (EditText) view.findViewById(R.id.etZipCode);
         zipcode.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if(actionId == EditorInfo.IME_ACTION_DONE || ((event.getKeyCode() == KeyEvent.KEYCODE_ENTER) &&
                 event.getAction() == KeyEvent.ACTION_DOWN)){
-                    Log.i("kfsama", "hello");
+                    hideKeyboard(v);
                     ShowNearBootCampLocations();
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     return true;
                 }
                 else {
@@ -70,6 +96,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         });
         getCurrentLocation();
         return view;
+    }
+
+    private void hideKeyboard(View view) {
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(),0);
     }
 
     /**
@@ -161,20 +191,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
 
         ArrayList<BootCamp> bootCamps = getNearBootCampLocations();
 
-//        for (BootCamp b: bootCamps) {
-//            mMap.addMarker(new MarkerOptions()
-//                    .position(new LatLng(b.getLatitude(), b.getLongitude()))
-//                    .title(b.getTitle())
-//                    .snippet(b.getSubtitle())
-//                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_pin)));
-//        }
+        for (BootCamp b: bootCamps) {
+            LatLng location = new LatLng(b.getLatitude(), b.getLongitude());
 
-        for(int i = 0; i < bootCamps.size(); i++){
             mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(bootCamps.get(i).getLatitude(), bootCamps.get(i).getLongitude()))
-                    .title(bootCamps.get(i).getTitle())
-                    .snippet(bootCamps.get(i).getSubtitle())
+                    .position(location)
+                    .title(b.getTitle())
+                    .snippet(b.getSubtitle())
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_pin)));
+
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
         }
     }
 
@@ -185,7 +211,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         bootCamps.add(new BootCamp(123.886609,10.302441,
                 "Queensland", "V Rama Ave, Cebu City"));
         bootCamps.add(new BootCamp(123.886563, 10.302314,
-                "Frobel iSchool", "358 V. Rama Ave cor. Lucio Lopez, Cebu City"));
+                "Frobel iSchool", "V. Rama Ave, Lucio Lopez, Cebu City"));
         bootCamps.add(new BootCamp(123.887778, 10.300299,
                 "USC South Campus", "J. Alcantara St. Lungsod, Cebu City"));
 
