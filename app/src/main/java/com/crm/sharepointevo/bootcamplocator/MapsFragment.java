@@ -55,6 +55,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
     private RecyclerView.Adapter adapter;
+    BottomSheetBehavior bottomSheetBehavior;
     InputMethodManager inputMethodManager;
 
 
@@ -62,9 +63,11 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.maps_fragment, container,false);
+
         mapView = (MapView) view.findViewById(R.id.mapview);
 
         inputMethodManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+
 
         recyclerView = (RecyclerView) view.findViewById(R.id.rvBottom);
         layoutManager = new LinearLayoutManager(view.getContext());
@@ -74,7 +77,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         recyclerView.setAdapter(adapter);
 
         RelativeLayout bottomsheet = (RelativeLayout) view.findViewById(R.id.bottomsheet);
-        final BottomSheetBehavior bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
 
@@ -84,9 +87,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if(actionId == EditorInfo.IME_ACTION_DONE || ((event.getKeyCode() == KeyEvent.KEYCODE_ENTER) &&
                 event.getAction() == KeyEvent.ACTION_DOWN)){
-                    hideKeyboard(v);
                     ShowNearBootCampLocations();
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                    hideKeyboard(v);
                     return true;
                 }
                 else {
@@ -99,7 +102,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void hideKeyboard(View view) {
-        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(),0);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
 
     /**
